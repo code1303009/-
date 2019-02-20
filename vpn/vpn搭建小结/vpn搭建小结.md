@@ -31,11 +31,13 @@ NNnn 改为你购买的vps的ip
 
 **6.接下来安装shadowsocks客户端，没安装就可以操作如下指令,如果已有直接进入第7步**
 
->yum install epel-release
->yum update 
->yum install python-setuptools m2crypto supervisor 
->easy_install pip 
->pip install shadowsocks
+```
+yum install epel-release
+yum update 
+yum install python-setuptools m2crypto supervisor 
+easy_install pip 
+pip install shadowsocks
+```
 
 **7.配置shadowsocks.json文件**
 
@@ -44,14 +46,14 @@ NNnn 改为你购买的vps的ip
 终端编辑器使用若不会，请自行查阅资料，内容如下
 
 >{
->	 >"port_password":
->	 >{
->		>"2333":"mima12345",
->		>"6666":"mima23456"
->	 >},
-> 	 >"timeout":300,
->	 >"method":"aes-256-cfb",
->	 >"fast_open": false
+>	 "port_password":
+>	 {
+>		"2333":"mima12345",
+>		"6666":"mima23456"
+>	 },
+> 	 "timeout":300,
+>	 "method":"aes-256-cfb",
+>	 "fast_open": false
 > }
 
 上边的json是建立了2个账号，分别的端口是2333和6666，对应的密码分别是mima12345和mima23456，然后:wq保存退出
