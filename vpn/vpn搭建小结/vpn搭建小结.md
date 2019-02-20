@@ -44,15 +44,15 @@ NNnn 改为你购买的vps的ip
 终端编辑器使用若不会，请自行查阅资料，内容如下
 
 > {
-	"port_password":
-	{
-		"2333":"mima12345",
-		"6666":"mima23456"
-	},
-	"timeout":300,
-	"method":"aes-256-cfb",
-	"fast_open": false
-}
+>	 "port_password":
+>	 {
+>		"2333":"mima12345",
+>		"6666":"mima23456"
+>	 },
+> 	 "timeout":300,
+>	 "method":"aes-256-cfb",
+>	 "fast_open": false
+> }
 
 上边的json是建立了2个账号，分别的端口是2333和6666，对应的密码分别是mima12345和mima23456，然后:wq保存退出
 
@@ -63,12 +63,12 @@ NNnn 改为你购买的vps的ip
   然后输入如下指令，保存退出
 
 > [program:shadowsocks]
-command=ssserver -s ::0 -d restart -c /etc/shadowsocks.json
-autostart=true
-autorestart=true
-user=root
-log_stderr=true
-logfile=/var/log/shadowsocks.log
+> command=ssserver -s ::0 -d restart -c /etc/shadowsocks.json
+> autostart=true
+> autorestart=true
+> user=root
+> log_stderr=true
+> logfile=/var/log/shadowsocks.log
 
 
 **9.设置开机启动项，输入如下指令**
@@ -78,9 +78,9 @@ logfile=/var/log/shadowsocks.log
 进入后，如果supervisord是安装成功的，编辑器内容如下
 
 > #!/bin/bash
-touch /var/lock/subsys/local
-/usr/bin/setterm -blank 0 || true
-/usr/bin/ssserver -c /etc/shadowsocks.json -d restart
+> touch /var/lock/subsys/local
+> /usr/bin/setterm -blank 0 || true
+> /usr/bin/ssserver -c /etc/shadowsocks.json -d restart
 
 /usr/bin/ssserver -c /etc/shadowsocks.json -d restart 这句话是应用我们配置的shadowsock.json的配置，并重启
 
@@ -106,7 +106,7 @@ Centos６系统默认的python版本是２.6.x，可通过python --version来查
 现在准备安装Python 2.7。
 先运行下面的命令，安装一些必须的软件包
 > sudo yum groupinstall "Development tools"
-sudo yum install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel
+> sudo yum install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel
 
 官网下载Python安装包：
 >wget https://www.python.org/ftp/python/2.7.15/Python-2.7.15.tgz
@@ -137,7 +137,7 @@ https://packaging.python.org/tutorials/installing-packages/
 
  使用如下指令就好
 >python -m ensurepip --default-pip
-python -m pip install --upgrade pip setuptools wheel
+>python -m pip install --upgrade pip setuptools wheel
 
  //安装pip
 >curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
