@@ -11,7 +11,7 @@
 
 **3.如下图，进入control界面，直接是启用状态，全部都配置好了，有需求可以在Install new OS切换服务**
 
-![images](https://github.com/code1303009/learning-recording/raw/master/vpn/vpn%E6%90%AD%E5%BB%BA%E5%B0%8F%E7%BB%93/images/KiwiVM control.png)  
+![images](https://github.com/code1303009/learning-recording/raw/master/vpn/vpn%E6%90%AD%E5%BB%BA%E5%B0%8F%E7%BB%93/images/KiwiVM-control.png)  
 
 
 **4.同时你的邮箱回有一封密码的邮件**
