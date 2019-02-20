@@ -19,7 +19,9 @@ KiwiVM control
 
 **5.下边就到了我们用ssh进入vps服务器，设置一下多账号信息,打开item**
 
-`ssh -p xxxx root@NNnn`
+```
+ssh -p xxxx root@NNnn
+```
 
 xxxx 改为你vps给的端口号
 
@@ -41,7 +43,9 @@ pip install shadowsocks
 
 **7.配置shadowsocks.json文件**
 
-`vi /etc/shadowsocks.json`
+```
+vi /etc/shadowsocks.json
+```
 
 终端编辑器使用若不会，请自行查阅资料，内容如下
 ```
@@ -61,7 +65,9 @@ pip install shadowsocks
 
 **8.添加到进程，如果上边安装shadowsocks中supervisord安装成功了，执行如下指令；否则直接跳到第9步**
 
-`vi /etc/supervisord.conf`
+```
+vi /etc/supervisord.conf
+```
  
  然后输入如下指令，保存退出
 
@@ -77,7 +83,9 @@ logfile=/var/log/shadowsocks.log
 
 **9.设置开机启动项，输入如下指令**
 
-`vi /etc/rc.local`
+```
+vi /etc/rc.local
+```
 
 进入后，如果supervisord是安装成功的，编辑器内容如下
 
@@ -91,8 +99,9 @@ touch /var/lock/subsys/local
 /usr/bin/ssserver -c /etc/shadowsocks.json -d restart 这句话是应用我们配置的shadowsock.json的配置，并重启
 
 **10.重启服务器即可**
-
-`reboot`
+```
+reboot
+```
 
 **平时维护：**
 
@@ -128,16 +137,24 @@ sudo yum install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel
 >5. sudo make altinstall
 
 然后编辑/usr/bin/yum，将第一行的#!/usr/bin/python修改成#!/usr/bin/python2.6
-`ln -s /usr/local/bin/python2.7 /usr/bin/python`
+```
+ln -s /usr/local/bin/python2.7 /usr/bin/python
+```
 
 如果报错：
-`ln: 创建符号链接 "/usr/bin/python": 文件已存在`
+```
+ln: 创建符号链接 "/usr/bin/python": 文件已存在
+```
 
 删除 /usr/bin/python文件
-`rm -rf /usr/bin/python`
+```
+rm -rf /usr/bin/python
+```
 
 查看现在系统默认的python版本有没改为python2.7：
-`python -V`
+```
+python -V
+```
 
 **安装pip9.0.1**
 
@@ -169,4 +186,6 @@ chkconfig net_speeder off //关闭
 **2019年2月11日更新**
 
 春节期间出现一部分自建vps的shadowsocks的账号登录不上，但是服务器ping和ss服务都是可用的。原因如下：
-`国内最近墙了一批端口号，原来自建的shadowsocks的端口号不能用了，替换一下即可`
+```
+国内最近墙了一批端口号，原来自建的shadowsocks的端口号不能用了，替换一下即可
+```
