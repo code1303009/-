@@ -5,17 +5,19 @@
 >https://bwh8.net/index.php
 
 **2.选择我的服务--进入KiwiVM Control Panel**
+![images](https://github.com/code1303009/learning-recording/raw/master/vpn/vpn%E6%90%AD%E5%BB%BA%E5%B0%8F%E7%BB%93/images/我的服务.png)
 
-  我的服务
-  进入KiwiVM
+![images](https://github.com/code1303009/learning-recording/raw/master/vpn/vpn%E6%90%AD%E5%BB%BA%E5%B0%8F%E7%BB%93/images/进入KiwiVM.png)  
 
 **3.如下图，进入control界面，直接是启用状态，全部都配置好了，有需求可以在Install new OS切换服务**
 
-KiwiVM control
+![images](https://github.com/code1303009/learning-recording/raw/master/vpn/vpn%E6%90%AD%E5%BB%BA%E5%B0%8F%E7%BB%93/images/KiwiVM control.png)  
+
 
 **4.同时你的邮箱回有一封密码的邮件**
 
-邮件，密码
+![images](https://github.com/code1303009/learning-recording/raw/master/vpn/vpn%E6%90%AD%E5%BB%BA%E5%B0%8F%E7%BB%93/images/邮件，密码.png)  
+
 
 **5.下边就到了我们用ssh进入vps服务器，设置一下多账号信息,打开item**
 
