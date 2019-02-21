@@ -22,7 +22,7 @@ git config –global http.postBuffer 524288000
 
 主要问题是出在git服务器上没有你的ssh key，本地找一下ssh key到git服务器配置一下就好了。因为本地有ssh key直接上图
 
-[!images]()
+[!images](https://github.com/code1303009/learning-recording/raw/master/git%E7%9B%B8%E5%85%B3/images/查找本地ssh-rsa.jpg)
 
 
 查找本地ssh-rsa
