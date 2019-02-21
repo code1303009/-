@@ -6,7 +6,7 @@ ERROR: Could not find a valid gem 'cocoapods' (>= 0) in any repository
 ```
 gem sources -l
 ```
-查看ruby源之后，发现是http://ruby.taobao.org/，源的版本已经被淘宝forbidden了，返回404，所以就换源
+查看ruby源之后，发现是 http://ruby.taobao.org/, 源的版本已经被淘宝forbidden了，返回404，所以就换源
 ```
 gem sources -a https://ruby.taobao.org/
 ```
@@ -26,9 +26,10 @@ Unable to require openssl, install OpenSSL and rebuild ruby (preferred) or use n
 
 想要简单的做法就是安装rvm，通过RVM来安装ruby，这样RVM就会自动给你配置好相应的OpenSSL参数。
 
-而RVM安装的步骤就是Xcode->homebrew->RVM->Ruby->CocoaPads
+而RVM安装的步骤就是**Xcode->homebrew->RVM->Ruby->CocoaPads**
 
 xcode不用说，homebrew是一个包管理器，用于在mac上安装一些os x上没有的UNiX工具（比如wget）（wget我不知道是什么），但是作为一个菜鸟来说，只要知道它如同window的350软件管理器就行了，用来安装一些软件。
+
 
 **homebrew安装：**
 
@@ -126,13 +127,15 @@ pod setup (这一步是在网上下载所需文件,需等待较长时间,取决�
 ```
 安装后就可以上使用cocoapods了.
 
+
 **后期补充**
 
 rvm install 2.0.0这一步可能出现这样的错误：
 ```
 error: RPC failed; curl 56 SSLRead() return error -9806
 ```
-解决方案：
+
+**解决方案：**
 ```
 brew remove git
 
