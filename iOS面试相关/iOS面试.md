@@ -202,3 +202,9 @@ dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER));
 【21】RAC就像水流一样，如果最终没有容器去接水流，那么水就不会流动
 RAC(self.someLablel, text) = [[title catchTo:[RACSignal return:@"Error"]]  startWith:@"Loading...”];
 例如这段代码，如果没有 = 前面这一段，= 后面的这段逻辑就不会进行
+
+【22】UIView.layer.shouldRasterize = YES CALayer会被光栅化为bitmap,layer的阴影等效果也会被缓存到bitmap中，等下次使用时不会再重新去渲染了。实现圆角本身就是在做颜色混合（blending），如果每次页面出来时都blending，消耗太大，这时shouldRasterize = yes，下次就只是简单的从渲染引擎的cache里读取那张bitmap，节约系统资源。
+额外收获：如果在滚动tableView时，每次都执行圆角设置，肯定会阻塞UI，设置这个将会使滑动更加流畅。
+**参考链接**
+>https://blog.csdn.net/lg767201403/article/details/50960909
+>https://github.com/100mango/zen/blob/master/WWDC%E5%BF%83%E5%BE%97%EF%BC%9AAdvanced%20Graphics%20and%20Animations%20for%20iOS%20Apps/Advanced%20Graphics%20and%20Animations%20for%20iOS%20Apps.md
