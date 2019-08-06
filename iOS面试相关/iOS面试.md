@@ -154,6 +154,33 @@ self.navigationController.navigationBar.translucent = NO; 【导航条透明度�
 【18】Xcode打开内存选项
 editSheme->Diagnostics->只打开Malloc Stack
 
+【19.0】semaphore详解
+```
+dispatch_semaphore_t dispatch_semaphore_create(long value);
+long dispatch_semaphore_wait(dispatch_semaphore_t dsema, dispatch_time_t timeout);
+long dispatch_semaphore_signal(dispatch_semaphore_t dsema);
+```
+**dispatch_semaphore_create####**
+创建一个新的信号量，参数value代表信号量资源池的初始数量。
+```
+value < 0， 返回NULL
+value = 0, 多线程在等待某个特定线程的结束。
+value > 0, 资源数量，可以由多个线程使用。
+```
+**dispatch_semaphore_wait####**
+等待资源释放。如果传入的dsema大于0，就继续向下执行，并将信号量减1；如果dsema等于0，阻塞当前线程等待资源被dispatch_semaphore_signal释放。如果等到了信号量，继续向下执行并将信号量减1，如果一直没有等到信号量，就等到timeout再继续执行。dsema不能传入NULL。
+timeout表示阻塞的时间长短，有两个常量：DISPATCH_TIME_NOW表示当前，DISPATCH_TIME_FOREVER表示永远。
+
+**dispatch_semaphore_signal####**
+释放一个资源。返回值为0表示没有线程等待这个信号量；返回值非0表示唤醒一个等待这个信号量的线程。如果线程有优先级，则按照优先级顺序唤醒线程，否则随机选择线程唤醒。
+
+**应用场景**
+```
+1.方法内异步请求后return返回
+2.方法内相册资源转格式返回
+3.内存读写操作等
+```
+
 【19】同步状态下的semaphore信号锁写法
 全局持有：
 static dispatch_semaphore_t _lock；
@@ -167,9 +194,10 @@ dispatch_semaphore_signal(_lock);
 【20】异步状态下的semaphore信号锁写法
 dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
 if (block) block(^{
-dispatch_semaphore_signal(semaphore);
+    dispatch_semaphore_signal(semaphore);
 });
-dispatch_semaphore_wait(semaphore, dispatch_time_in_seconds(timeout > 0.0 ? timeout : DISPATCH_TIME_FOREVER));
+dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER));
+
 
 【21】RAC就像水流一样，如果最终没有容器去接水流，那么水就不会流动
 RAC(self.someLablel, text) = [[title catchTo:[RACSignal return:@"Error"]]  startWith:@"Loading...”];
