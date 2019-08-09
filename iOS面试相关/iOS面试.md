@@ -233,3 +233,162 @@ dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER));
     return v;
 }
 ```
+**【23】工厂模式**
+可以分为简单工厂模式，工厂模式，抽象工厂模式
+工厂可以分为抽象工厂类（父类）、具体工厂类（子类）
+工厂模式生产的产品也可以分为抽象产品（父类）、具体产品（子类）
+举个例子，client需要一个按钮，NSObject工厂生产一个UIButton类，UIButton可以派生很多子类
+再举个例子，client需要一个页面，NSObject工厂生产一个UIView类，UIView也可以派生很多子类
+我们常用的就是根据定义的枚举type，输出不同的类（基于同个父类），来满足需求。每个vc都有一个baseviewcontroller也是如此
+
+**【24】手指点击屏幕响应链**
+产生触摸事件->UIApplication事件队列->[UIWindow hitTest:withEvent:]->返回更合适的view->[子控件 hitTest:withEvent:]->返回最合适的view
+
+**【25】kvc和kvo**
+kvc键值编码模式，定义了一种按名称访问对象属性的机制，主要用法：
+```
+- (id)valueForKey:(NSString *)key;
+- (void)setValue:(id)value forKey:(NSString *)key;
+- (id)valueForKeyPath:(NSString *)keyPath;
+- (void)setValue:(id)value forKeyPath:(NSString *)keyPath;
+```
+kvc和self.语法类似，但是不能用self.语法的时候，可以[NSObject valueForKey:xxx]去访问属性
+ios13已废弃kvc方法
+
+**【26】category中动态添加属性底层原理**
+>    objc_setAssociatedObject(self, @"name",name, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
+这个方法是动态添加方法的用法，底层实现用到了4种核心对象
+1.**AssociationsManager**
+2.**AssociationsHashMap**
+3.**ObjectAssociationMap**
+4.**ObjcAssociation**
+
+**总结：**
+```
+关联对象并不是存储在被关联对象本身内存中，而是存储在全局的统一的一个AssociationsManager中，自己维护manager内一个map，用来存放每一个对象及其对应关联属性表格。
+如果设置关联对象为nil，就相当于是移除关联对象。
+objc_AssociationPolicy policy 一般是用copy或retain
+```
+
+详情细看链接
+>https://www.jianshu.com/p/0f9b990e8b0a
+
+**【27】runloop和线程间关系**
+```
+每条线程都有唯一的一个与之对应的RunLoop对象
+RunLoop保存在一个全局的Dictionary里，线程作为key,RunLoop作为value
+主线程的RunLoop已经自动创建好了，子线程的RunLoop需要主动创建
+RunLoop在第一次获取时创建，在线程结束时销毁
+```
+**线程和 RunLoop 之间是一一对应的，其关系是保存在一个 Dictionary 里。
+所以我们创建子线程RunLoop时，只需在子线程中获取当前线程的RunLoop对象即可[NSRunLoop currentRunLoop];
+如果不获取，那子线程就不会创建与之相关联的RunLoop，并且只能在一个线程的内部获取其 RunLoop
+[NSRunLoop currentRunLoop];
+方法调用时，会先看一下字典里有没有存子线程相对用的RunLoop，
+如果有则直接返回RunLoop，如果没有则会创建一个，并将与之对应的子线程存入字典中。
+当线程结束时，RunLoop会被销毁。**
+
+__CFRunLoopMode结构体源码
+```
+typedef struct __CFRunLoopMode *CFRunLoopModeRef;
+struct __CFRunLoopMode {
+    CFRuntimeBase _base;
+    pthread_mutex_t _lock;  /* must have the run loop locked before locking this */
+    CFStringRef _name;
+    Boolean _stopped;
+    char _padding[3];
+    CFMutableSetRef _sources0;//**用户输入源， 触摸事件，PerformSelectors**
+    CFMutableSetRef _sources1;//**系统输入源，基于Port的线程间通信**
+    CFMutableArrayRef _observers;//**监听器，用于监听RunLoop的状态**
+    CFMutableArrayRef _timers;//**定时器，NSTimer**
+    CFMutableDictionaryRef _portToV1SourceMap;
+    __CFPortSet _portSet;
+    CFIndex _observerMask;
+#if USE_DISPATCH_SOURCE_FOR_TIMERS
+    dispatch_source_t _timerSource;
+    dispatch_queue_t _queue;
+    Boolean _timerFired; // set to true by the source when a timer has fired
+    Boolean _dispatchTimerArmed;
+#endif
+#if USE_MK_TIMER_TOO
+    mach_port_t _timerPort;
+    Boolean _mkTimerArmed;
+#endif
+#if DEPLOYMENT_TARGET_WINDOWS
+    DWORD _msgQMask;
+    void (*_msgPump)(void);
+#endif
+    uint64_t _timerSoftDeadline; /* TSR */
+    uint64_t _timerHardDeadline; /* TSR */
+};
+```
+
+**RunLoop退出**
+1. 主线程销毁RunLoop退出
+2. Mode中有一些Timer 、Source、 Observer，这些保证Mode不为空时保证RunLoop没有空转并且是在运行的，当Mode中为空的时候，RunLoop会立刻退出
+3. 我们在启动RunLoop的时候可以设置什么时候停止
+
+
+**RunLoop应用**
+1. **常驻线程**
+```
+-(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
+    // 创建子线程并开启
+    NSThread *thread = [[NSThread alloc]initWithTarget:self selector:@selector(show) object:nil];
+    self.thread = thread;
+    [thread start];
+}
+
+-(void)show
+{
+    // 注意：打印方法一定要在RunLoop创建开始运行之前，如果在RunLoop跑起来之后打印，RunLoop先运行起来，已经在跑圈了就出不来了，进入死循环也就无法执行后面的操作了。
+    // 但是此时点击Button还是有操作的，因为Button是在RunLoop跑起来之后加入到子线程的，当Button加入到子线程RunLoop就会跑起来
+    NSLog(@"%s",__func__);
+    // 1.创建子线程相关的RunLoop，在子线程中创建即可，并且RunLoop中要至少有一个Timer 或 一个Source 保证RunLoop不会因为空转而退出，因此在创建的时候直接加入
+    // 添加Source [NSMachPort port] 添加一个端口
+    [[NSRunLoop currentRunLoop] addPort:[NSMachPort port] forMode:NSDefaultRunLoopMode];
+    // 添加一个Timer
+    NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:2.0 target:self selector:@selector(test) userInfo:nil repeats:YES];
+    [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];    
+    //创建监听者
+    CFRunLoopObserverRef observer = CFRunLoopObserverCreateWithHandler(CFAllocatorGetDefault(), kCFRunLoopAllActivities, YES, 0, ^(CFRunLoopObserverRef observer, CFRunLoopActivity activity) {
+    switch (activity) {
+        case kCFRunLoopEntry:
+            NSLog(@"RunLoop进入");
+            break;
+        case kCFRunLoopBeforeTimers:
+            NSLog(@"RunLoop要处理Timers了");
+            break;
+        case kCFRunLoopBeforeSources:
+            NSLog(@"RunLoop要处理Sources了");
+            break;
+        case kCFRunLoopBeforeWaiting:
+            NSLog(@"RunLoop要休息了");
+            break;
+        case kCFRunLoopAfterWaiting:
+            NSLog(@"RunLoop醒来了");
+            break;
+        case kCFRunLoopExit:
+            NSLog(@"RunLoop退出了");
+            break;
+
+        default:
+            break;
+        }
+    });
+    // 给RunLoop添加监听者
+    CFRunLoopAddObserver(CFRunLoopGetCurrent(), observer, kCFRunLoopDefaultMode);
+    // 2.子线程需要开启RunLoop
+    [[NSRunLoop currentRunLoop]run];
+    CFRelease(observer);
+}
+```
+**注意：创建子线程相关的RunLoop，在子线程中创建即可，并且RunLoop中要至少有一个Timer或一个Sources，保证RunLoop不会因为空转而退出，因此在创建的时候直接加入，如果没有加入Timer或者Source，或者只加入一个监听者，运行程序会崩溃**
+
+2. **自动释放池**
+RunLoop内部有一个自动释放池，**当RunLoop开启时，就会自动创建一个自动释放池，当RunLoop在休息之前会释放掉自动释放池的东西，然后重新创建一个新的空的自动释放池**，当RunLoop被唤醒重新开始跑圈时，Timer,Source等新的事件就会放到新的自动释放池中，**当RunLoop退出的时候也会被释放**。
+
+参考链接
+>https://www.jianshu.com/p/de752066d0ad
