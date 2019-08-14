@@ -476,7 +476,7 @@ struct __block_impl{
     void *FuncPtr;
 }
 ```
-![image](https://github.com/code1303009/learning-recording/raw/master/)
+![image](https://github.com/code1303009/learning-recording/blob/master/iOS%E9%9D%A2%E8%AF%95%E7%9B%B8%E5%85%B3/images/block%E7%BB%93%E6%9E%84.png)
 1. __block_impl结构体中isa指针存储着&_NSConcreteStackBlock地址，可以暂时理解为其类对象地址，block就是_NSConcreteStackBlock类型的。
 2. block代码块中的代码被封装成__main_block_func_0函数，FuncPtr则存储着__main_block_func_0函数的地址。
 3. Desc指向__main_block_desc_0结构体对象，其中存储__main_block_impl_0结构体所占用的内存。
