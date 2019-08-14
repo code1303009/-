@@ -392,3 +392,92 @@ RunLoop内部有一个自动释放池，**当RunLoop开启时，就会自动创�
 
 参考链接
 >https://www.jianshu.com/p/de752066d0ad
+
+
+**【28】+initialize和+load**
+**父类子类执行顺序**
+父类+initialize-->父类+load-->子类+initialize-->子类+load
+
+**+load**方法会在加载类的时候就被调用，也就是 ios 应用启动的时候，就会加载所有的类，就会调用每个类的 + load 方法。**是在 main 函数之前执行的**。
+**每个类的load函数只会自动调用一次**.由于load函数是系统自动加载的，因此不需要再调用[super load]，否则父类的load函数会多次执行。
+**category中每个+load方法都会执行，顺序是target中Compile Sources顺序相同**
+
+注：load调用时机比较早,当load调用时,其他类可能还没加载完成,**运行环境不安全**. load方法是线程安全的，它使用了锁，我们应该避免线程阻塞在load方法.
+
+**+initialize**方法在类或者其子类的**第一个方法被调用前调用**。即使类文件被引用进项目,但是没有使用,initialize不会被调用。但如果类文件没有被调用，类内重写了+load方法，此时initialize会被调用。
+**有多个category有+initialize方法时，会覆盖掉类的方法，只执行一个category中的方法，执行一次（Compile Sources中最后一个category的方法）**
+
+注：在initialize方法收到调用时,**运行环境基本健全**。 initialize内部也使用了锁，所以是线程安全的。但同时要避免阻塞线程，不要再使用锁
+
+```
+2019-08-13 21:56:46.123314+0800 iOS面试[9787:4959985] +[JWPerson initialize]
+2019-08-13 21:56:46.124107+0800 iOS面试[9787:4959985] +[JWPerson load]   JWPerson
+2019-08-13 21:56:46.124265+0800 iOS面试[9787:4959985] +[JWSon initialize]
+2019-08-13 21:56:46.124382+0800 iOS面试[9787:4959985] +[JWSon load]   JWSon
+```
+**【29】block底层**
+block本质上也是一个**oc对象**，他内部也**有一个isa指针**。
+block是封装了函数调用以及函数调用环境的OC对象。
+
+```
+int main(int argc, const char * argv[]) {
+    @autoreleasepool {
+        int age = 10;
+        void(^block)(int ,int) = ^(int a, int b){
+            NSLog(@"this is block,a = %d,b = %d",a,b);
+            NSLog(@"this is block,age = %d",age);
+        };
+        block(3,5);
+    }
+    return 0;
+}
+```
+使用命令行将代码转化为c++查看其内部结构，与OC代码进行比较
+>xcrun -sdk iphoneos clang -arch arm64 -rewrite-objc main.m
+```
+// 定义block变量代码
+void(*block)(int ,int) = ((void (*)(int, int))&__main_block_impl_0((void *)__main_block_func_0, &__main_block_desc_0_DATA, age));
+```
+可以看出用到了3个结构体，**__main_block_impl_0**、**__main_block_func_0**、**__main_block_desc_0_DATA**
+```
+// __main_block_impl_0结构体  
+// 有2个属性impl和Desc ，内部方法主要是把fp（即__main_block_func_0）、desc、age等主要值赋值的过程
+struct  __main_block_imp_0{
+    struct __block_impl impl;
+    struct __main_block_desc_0* Desc;
+    int age;
+    __main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, int age,int flags=0):age(_age){
+        impl.isa = &_NSConcreteStackBlock;
+        impl.Flags = flags;
+        impl.FuncPtr = fp;//函数赋值 fp（即__main_block_func_0）
+        Desc = desc;
+    }
+}
+
+// **(void *)__main_block_func_0就是外部block块的内容，block将其构造成了一个func
+static void __main_block_func_0(struct __main_block_impl_0 *__cself, int a, int b){
+    int age = __cself->age;//外部变量copy
+    NSLog((NSString *)&__NSConstantStringImpl__var_folders_01_gzb10y313_1873p5t881pnvb0000gn_T_main_70fbf9_mi_0,a,b);
+    NSLog((NSString *)&__NSConstantStringImpl__var_folders_01_gzb10y313_1873p5t881pnvb0000gn_T_main_70fbf9_mi_1,age):
+}
+
+// __main_block_desc_0_DATA构造 reserved赋值为0 Block_size是block的大小 就是一描述结构体
+static struct __main_block_desc_0{
+    size_t reserved;
+    size_t Block_size;
+} __main_block_desc_0_DATA = { 0, sizeof(struct __main_block_imp_0)};
+
+
+// 附以下__block_impl构造
+struct __block_impl{
+    void *isa;
+    int Flags;
+    int Reserved;
+    void *FuncPtr;
+}
+```
+![image](https://github.com/code1303009/learning-recording/raw/master/)
+1. __block_impl结构体中isa指针存储着&_NSConcreteStackBlock地址，可以暂时理解为其类对象地址，block就是_NSConcreteStackBlock类型的。
+2. block代码块中的代码被封装成__main_block_func_0函数，FuncPtr则存储着__main_block_func_0函数的地址。
+3. Desc指向__main_block_desc_0结构体对象，其中存储__main_block_impl_0结构体所占用的内存。
+
