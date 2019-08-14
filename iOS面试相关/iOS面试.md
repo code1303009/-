@@ -481,3 +481,47 @@ struct __block_impl{
 2. block代码块中的代码被封装成__main_block_func_0函数，FuncPtr则存储着__main_block_func_0函数的地址。
 3. Desc指向__main_block_desc_0结构体对象，其中存储__main_block_impl_0结构体所占用的内存。
 
+**局部变量**
+**auto变量**
+auto自动变量，离开作用域就销毁，通常**局部变量前面自动添加auto关键字**。**自动变量会捕获到block内部，也就是说block内部会专门新增加一个参数来存储变量的值**。
+auto只存在于局部变量中，访问方式为值传递，通过上述对age参数的解释我们也可以确定确实是值传递。
+**static变量**
+static 修饰的变量为指针传递，同样会被block捕获。
+
+```
+int main(int argc, const char * argv[]) {
+    @autoreleasepool {
+        auto int a = 10;//相当于 int a = 10;
+        static int b = 11;
+        void(^block)(void) = ^{
+            NSLog(@"hello, a = %d, b = %d", a,b);
+        };
+        a = 1;
+        b = 2;
+        block();
+    }
+    return 0;
+}
+// log : block本质[57465:18555229] hello, a = 10, b = 2
+// block中a的值没有被改变而b的值随外部变化而变化。
+```
+**全局变量**
+```
+int a = 10;
+static int b = 11;
+int main(int argc, const char * argv[]) {
+    @autoreleasepool {
+        void(^block)(void) = ^{
+            NSLog(@"hello, a = %d, b = %d", a,b);
+        };
+        a = 1;
+        b = 2;
+        block();
+    }
+    return 0;
+}
+// log hello, a = 1, b = 2
+```
+总结：**局部变量都会被block捕获，自动变量是值捕获，静态变量为地址捕获。全局变量则不会被block捕获**
+来源：
+>https://juejin.im/post/5b0181e15188254270643e88
