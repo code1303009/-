@@ -259,6 +259,7 @@ ios13已废弃kvc方法
 >    objc_setAssociatedObject(self, @"name",name, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
 这个方法是动态添加方法的用法，底层实现用到了4种核心对象
+
 1.**AssociationsManager**
 2.**AssociationsHashMap**
 3.**ObjectAssociationMap**
@@ -266,8 +267,9 @@ ios13已废弃kvc方法
 
 **总结：**
 ```
-关联对象并不是存储在被关联对象本身内存中，而是存储在全局的统一的一个AssociationsManager中，自己维护manager内一个map，用来存放每一个对象及其对应关联属性表格。
+关联对象并不是存储在被关联对象本身内存中，而是存储在全局的统一的一个AssociationsManager中，自己维护manager内一个map，用来存放每一个对象及其对应关联属性表格。每个表格中key是引用对象地址，value是weak指针数组。
 如果设置关联对象为nil，就相当于是移除关联对象。
+
 objc_AssociationPolicy policy 一般是用copy或retain
 ```
 
