@@ -17,12 +17,36 @@ GCD 会自动管理线程的生命周期（创建线程、调度任务、销毁�
 
 ---
 ## **dispatch_get_global_queue**
-- 第一个参数identifier，用于标识global queue的优先级
-   - DISPATCH_QUEUE_PRIORITY_HIGH           最高优先级
-   - DISPATCH_QUEUE_PRIORITY_DEFAULT     普通优先级
-   - DISPATCH_QUEUE_PRIORITY_LOW            低优先级
-   - DISPATCH_QUEUE_PRIORITY_DEFAULT     后台优先级（最低）
-- 第二个参数flags，苹果预留字段，暂时无用，默认传0
+### 第一个参数identifier
+用于标识global queue的优先级，8.0之前的定义，优先级从高到低
+```
+#define DISPATCH_QUEUE_PRIORITY_HIGH 2
+#define DISPATCH_QUEUE_PRIORITY_DEFAULT 0
+#define DISPATCH_QUEUE_PRIORITY_LOW (-2)
+#define DISPATCH_QUEUE_PRIORITY_BACKGROUND INT16_MIN
+```
+8.0之后的定义
+```
+__QOS_ENUM(qos_class, unsigned int,
+    QOS_CLASS_USER_INTERACTIVE
+        __QOS_CLASS_AVAILABLE(macos(10.10), ios(8.0)) = 0x21,
+    QOS_CLASS_USER_INITIATED
+        __QOS_CLASS_AVAILABLE(macos(10.10), ios(8.0)) = 0x19,
+    QOS_CLASS_DEFAULT
+        __QOS_CLASS_AVAILABLE(macos(10.10), ios(8.0)) = 0x15,
+    QOS_CLASS_UTILITY
+        __QOS_CLASS_AVAILABLE(macos(10.10), ios(8.0)) = 0x11,
+    QOS_CLASS_BACKGROUND
+        __QOS_CLASS_AVAILABLE(macos(10.10), ios(8.0)) = 0x09,
+    QOS_CLASS_UNSPECIFIED
+        __QOS_CLASS_AVAILABLE(macos(10.10), ios(8.0)) = 0x00,
+);
+
+#undef __QOS_ENUM
+```
+### 第二个参数flags
+苹果预留字段，暂时无用，默认传0
+
 ---
 ```
 //串行队列的创建方法
