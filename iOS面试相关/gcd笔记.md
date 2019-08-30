@@ -15,7 +15,15 @@ GCD 会自动管理线程的生命周期（创建线程、调度任务、销毁�
    - **DISPATCH_QUEUE_SERIAL** ，串行队列
    - **DISPATCH_QUEUE_CONCURRENT**，并发队列
 
-
+---
+## **dispatch_get_global_queue**
+- 第一个参数identifier，用于标识global queue的优先级
+   - DISPATCH_QUEUE_PRIORITY_HIGH           最高优先级
+   - DISPATCH_QUEUE_PRIORITY_DEFAULT     普通优先级
+   - DISPATCH_QUEUE_PRIORITY_LOW            低优先级
+   - DISPATCH_QUEUE_PRIORITY_DEFAULT     后台优先级（最低）
+- 第二个参数flags，苹果预留字段，暂时无用，默认传0
+---
 ```
 //串行队列的创建方法
     dispatch_queue_t queue = dispatch_queue_create("111111", DISPATCH_QUEUE_SERIAL);
