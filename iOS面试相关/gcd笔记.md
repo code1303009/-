@@ -1,19 +1,19 @@
    > Grand Central Dispatch(GCD) 是 Apple 开发的一个多核编程的较新的解决方法。它主要用于优化应用程序以支持多核处理器以及其他对称多处理系统。它是一个在线程池模式的基础上执行的并发任务。在 Mac OS X 10.6 雪豹中首次推出，也可在 iOS 4 及以上版本使用。
 
-**gcd优点**
+# **gcd优点**
 ```
 GCD 可用于多核的并行运算
 GCD 会自动利用更多的 CPU 内核（比如双核、四核）
 GCD 会自动管理线程的生命周期（创建线程、调度任务、销毁线程）
 程序员只需要告诉 GCD 想要执行什么任务，不需要编写任何线程管理代码
 ```
-**主要用法**
+# **主要用法**
 
-####**dispatch_queue_create**
->第一个参数label，用于标识queue的名字，一般用域名翻转方式命名
->第二个参数，
-> >**DISPATCH_QUEUE_SERIAL** ，串行队列，
-> >**DISPATCH_QUEUE_CONCURRENT**，并发队列
+## **dispatch_queue_create**
+- 第一个参数label，用于标识queue的名字，一般用域名翻转方式命名
+- 第二个参数
+- **DISPATCH_QUEUE_SERIAL** ，串行队列
+- **DISPATCH_QUEUE_CONCURRENT**，并发队列
 
 
 ```
@@ -34,7 +34,7 @@ GCD 会自动管理线程的生命周期（创建线程、调度任务、销毁�
         // 这里放异步执行任务代码
     });
 ```
-**gcd栅栏方法 dispatch_barrier_async**
+## **gcd栅栏方法 dispatch_barrier_async**
 我们有时需要异步执行两组操作，而且第一组操作执行完之后，才能开始执行第二组操作。这样我们就需要一个相当于 栅栏 一样的一个方法将两组异步执行的操作组给分割起来，当然这里的操作组里可以包含一个或多个任务。
 ```
 /**
@@ -77,7 +77,7 @@ GCD 会自动管理线程的生命周期（创建线程、调度任务、销毁�
 }
 ```
 
-**GCD 延时执行方法：dispatch_after**
+## **GCD 延时执行方法：dispatch_after**
 我们经常会遇到这样的需求：在指定时间（例如3秒）之后执行某个任务。可以用 GCD 的dispatch_after函数来实现。
 需要注意的是：
 ```
@@ -100,7 +100,7 @@ dispatch_after函数并不是在指定时间之后才开始执行处理，而是
 }
 ```
 
-**GCD 一次性代码（只执行一次）：dispatch_once**
+## **GCD 一次性代码（只执行一次）：dispatch_once**
 ```
 /**
 * 一次性代码（只执行一次）dispatch_once
@@ -113,7 +113,7 @@ dispatch_after函数并不是在指定时间之后才开始执行处理，而是
 }
 ```
 
-**GCD 快速迭代方法：dispatch_apply**
+## **GCD 快速迭代方法：dispatch_apply**
 通常我们会用 for 循环遍历，但是 GCD 给我们提供了快速迭代的函数dispatch_apply。dispatch_apply按照指定的次数将指定的任务追加到指定的队列中，并等待全部队列执行结束。
 ```
 /**
@@ -130,8 +130,8 @@ dispatch_after函数并不是在指定时间之后才开始执行处理，而是
 }
 ```
 
-**GCD 的队列组：dispatch_group**
-主要用法：
+## **GCD 的队列组：dispatch_group**
+### 主要用法：
 ```
 dispatch_group_notify//监听 group 中任务的完成状态，当所有的任务都执行完成后，追加任务到 group 中，并执行任务。
 dispatch_group_wait//暂停当前线程（阻塞当前线程），等待指定的 group 中的任务执行完成后，才会往下继续执行。
@@ -141,7 +141,7 @@ dispatch_group_leave//标志着一个任务离开了 group，执行一次，相�
 当 group 中未执行完毕任务数为0的时候，才会使dispatch_group_wait解除阻塞，以及执行追加到dispatch_group_notify中的任务。
 ```
 
-**dispatch_group_notify**
+### **dispatch_group_notify**
 ```
 /**
 * 队列组 dispatch_group_notify
@@ -177,7 +177,7 @@ dispatch_group_leave//标志着一个任务离开了 group，执行一次，相�
 }
 ```
 
-**GCD 信号量：dispatch_semaphore**
+### **GCD 信号量：dispatch_semaphore**
 ```
 dispatch_semaphore_create：创建一个Semaphore并初始化信号的总量
 dispatch_semaphore_signal：发送一个信号，让信号总量加1
