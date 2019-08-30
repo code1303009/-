@@ -12,8 +12,8 @@ GCD 会自动管理线程的生命周期（创建线程、调度任务、销毁�
 ## **dispatch_queue_create**
 - 第一个参数label，用于标识queue的名字，一般用域名翻转方式命名
 - 第二个参数
-- **DISPATCH_QUEUE_SERIAL** ，串行队列
-- **DISPATCH_QUEUE_CONCURRENT**，并发队列
+   - **DISPATCH_QUEUE_SERIAL** ，串行队列
+   - **DISPATCH_QUEUE_CONCURRENT**，并发队列
 
 
 ```
