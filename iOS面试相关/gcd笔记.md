@@ -172,6 +172,14 @@ dispatch_group_leave//标志着一个任务离开了 group，执行一次，相�
 
 当 group 中未执行完毕任务数为0的时候，才会使dispatch_group_wait解除阻塞，以及执行追加到dispatch_group_notify中的任务。
 ```
+dispatch_group本质上是**一个value为LONG_MAX信号量**，源码如下
+```
+dispatch_group_t dispatch_group_create(void) {  
+    dispatch_group_t dg = _dispatch_alloc(DISPATCH_VTABLE(group), sizeof(struct dispatch_semaphore_s));
+    _dispatch_semaphore_init(LONG_MAX, dg);
+    return dg;
+}
+```
 
 ### **dispatch_group_notify**
 ```

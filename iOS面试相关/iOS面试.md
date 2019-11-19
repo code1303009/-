@@ -253,7 +253,12 @@ kvc键值编码模式，定义了一种按名称访问对象属性的机制，�
 - (void)setValue:(id)value forKeyPath:(NSString *)keyPath;
 ```
 kvc和self.语法类似，但是不能用self.语法的时候，可以[NSObject valueForKey:xxx]去访问属性
-ios13已废弃kvc方法
+1. 可以用于字典转model，可以setValue:forKey:这样的方式进行属性赋值；
+2. 使用系统控件，但UI样式上有区分，可以用kvc改变私有样式
+
+kvo是观察者模式，
+当kvo对象A属性改变时，会对应建立一个NSKVONotifying_A的类，isa指针会从A指向NSKVONotifying_A，通过NSKVONotifying_A检测属性变化
+
 
 **【26】category中动态添加属性底层原理**
 >    objc_setAssociatedObject(self, @"name",name, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
