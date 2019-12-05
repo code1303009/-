@@ -12,4 +12,5 @@
     
 附上：拦截web页面定位弹框频繁弹出[demo](https://github.com/code1303009/learning-recording/tree/master/WKWebView/WKWebViewTest)
 ---
-PS: demo需要切换到自己的证书，并且只有真机验证才会出现效果，模拟器无效
+PS: demo需要切换到自己的证书，并且只有真机验证才会出现效果，模拟器无效。
+demo网址写死58的页面，并抓取了58本地js的navigator.geolocation.getCurrentPosition实现作为回抛。
