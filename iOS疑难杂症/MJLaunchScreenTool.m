@@ -29,6 +29,9 @@
 
 //从沙盒获取启动图
 + (UIImage *)getCacheLaunchImageByLirbrary{
+    if (![self isAvailable]) {
+        return [self getLaunchImageByStoreBoard];
+    }
     NSUserDefaults *userDefault = [NSUserDefaults standardUserDefaults];
     BOOL isCoverFirst = [userDefault boolForKey:kSplashBoardCoverInstallFirst];
     NSString *cacheLaunchPath = nil;
@@ -44,6 +47,13 @@
 //部分机型可能出现缓存同时用到2张截图的情况
 //所以在不改动系统原有缓存数的情况下 仅做替换 防止出错
 + (void)updateSplashBoardCache:(BOOL)fetImageFromStoryBoard{
+    if (![self isAvailable]) {
+        NSString *cache = [NSString stringWithFormat:@"%@/Library/Caches/Snapshots/",NSHomeDirectory()];
+        NSLog(@"Library/Caches/Snapshots 是否为可写目录 ： %d",[[NSFileManager defaultManager] isWritableFileAtPath:cache]);
+        NSLog(@"Library/Caches/Snapshots 是否为可读目录 ： %d",[[NSFileManager defaultManager] isReadableFileAtPath:cache]);
+        NSLog(@"Library/Caches/Snapshots 是否为可删除目录 ： %d",[[NSFileManager defaultManager] isDeletableFileAtPath:cache]);
+        return;
+    }
     NSUserDefaults *userDefault = [NSUserDefaults standardUserDefaults];
     NSString *splashVersion = [userDefault objectForKey:kSplashBoard_Version];
     NSLog(@"进入了storyboard开屏清理方法");
@@ -98,13 +108,17 @@
     if (isFirst) {
         NSArray *array = [self getCacheLaunchImageArrayPath];
         NSLog(@"storyboard->storyboard方式，开屏截屏缓存数组：%@",array);
-        NSString *cacheLaunchPath = [array firstObject];
-        NSError *error = nil;
-        BOOL success = [defaultManager copyItemAtPath:cacheLaunchPath toPath:copyFullPath error:&error];
-        if (success) {
-            NSLog(@"storyboard->storyboard方式，首次覆盖安装，图片备份成功");
-        }else{
-            NSLog(@"storyboard->storyboard方式，首次覆盖安装，图片备份失败，文件是否存在%d，copyPath == %@,error == %@",[defaultManager fileExistsAtPath:cacheLaunchPath],copyFullPath,error);
+        if (array.count > 0) {
+            NSString *cacheLaunchPath = [array firstObject];
+            NSError *error = nil;
+            if ([defaultManager fileExistsAtPath:cacheLaunchPath]){
+                BOOL success = [defaultManager copyItemAtPath:cacheLaunchPath toPath:copyFullPath error:&error];
+                if (success) {
+                    NSLog(@"storyboard->storyboard方式，首次覆盖安装，图片备份成功");
+                }else{
+                    NSLog(@"storyboard->storyboard方式，首次覆盖安装，图片备份失败，文件是否存在%d，copyPath == %@,error == %@",[defaultManager fileExistsAtPath:cacheLaunchPath],copyFullPath,error);
+                }
+            }
         }
     }else{
         NSLog(@"storyboard->storyboard方式，移除首次覆盖安装缓存图片");
@@ -116,7 +130,13 @@
 
 #pragma mark - 路径
 + (NSString *)splashShotCachePath{
-    NSString *snapShotPath = [NSString stringWithFormat:@"%@/Library/SplashBoard/Snapshots/%@ - {DEFAULT GROUP}/",NSHomeDirectory(),[NSBundle mainBundle].bundleIdentifier];
+    NSString *snapShotPath = nil;
+    if ([UIDevice currentDevice].systemVersion.floatValue < 13.0) {
+        snapShotPath = [NSString stringWithFormat:@"%@/Library/Caches/Snapshots/%@/",NSHomeDirectory(),[NSBundle mainBundle].bundleIdentifier];
+    }else{
+        //13.0以上系统
+        snapShotPath = [NSString stringWithFormat:@"%@/Library/SplashBoard/Snapshots/%@ - {DEFAULT GROUP}/",NSHomeDirectory(),[NSBundle mainBundle].bundleIdentifier];
+    }
     return snapShotPath;
 }
 
@@ -150,4 +170,10 @@
     return mjSnapShotPath;
 }
 
++ (BOOL)isAvailable{
+    if ([UIDevice currentDevice].systemVersion.floatValue >= 13.0) {
+        return YES;
+    }
+    return NO;
+}
 @end
