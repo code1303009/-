@@ -1,5 +1,7 @@
 # **需求**
 弃用LaunchImage启动图方式，改用Launch Screen.storyBoard启动图方式，同时不对开屏广告造成影响。
+### **注：该方案仅适用iOS13.0及以上版本。**
+iOS 12及以下系统沙盒目录（Library/Caches/Snapshots）为不可读、不可写、可删除（但是开发者无权删除）权限，故本套方案不起作用。
 
 # **背景**
 现阶段网上流行的storyboard开屏：
@@ -102,6 +104,9 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
 
 //从沙盒获取启动图
 + (UIImage *)getCacheLaunchImageByLirbrary{
+    if (![self isAvailable]) {
+        return [self getLaunchImageByStoreBoard];
+    }
     NSUserDefaults *userDefault = [NSUserDefaults standardUserDefaults];
     BOOL isCoverFirst = [userDefault boolForKey:kSplashBoardCoverInstallFirst];
     NSString *cacheLaunchPath = nil;
@@ -117,6 +122,13 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
 //部分机型可能出现缓存同时用到2张截图的情况
 //所以在不改动系统原有缓存数的情况下 仅做替换 防止出错
 + (void)updateSplashBoardCache:(BOOL)fetImageFromStoryBoard{
+    if (![self isAvailable]) {
+        NSString *cache = [NSString stringWithFormat:@"%@/Library/Caches/Snapshots/",NSHomeDirectory()];
+        NSLog(@"Library/Caches/Snapshots 是否为可写目录 ： %d",[[NSFileManager defaultManager] isWritableFileAtPath:cache]);
+        NSLog(@"Library/Caches/Snapshots 是否为可读目录 ： %d",[[NSFileManager defaultManager] isReadableFileAtPath:cache]);
+        NSLog(@"Library/Caches/Snapshots 是否为可删除目录 ： %d",[[NSFileManager defaultManager] isDeletableFileAtPath:cache]);
+        return;
+    }
     NSUserDefaults *userDefault = [NSUserDefaults standardUserDefaults];
     NSString *splashVersion = [userDefault objectForKey:kSplashBoard_Version];
     NSLog(@"进入了storyboard开屏清理方法");
@@ -171,13 +183,17 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
     if (isFirst) {
         NSArray *array = [self getCacheLaunchImageArrayPath];
         NSLog(@"storyboard->storyboard方式，开屏截屏缓存数组：%@",array);
-        NSString *cacheLaunchPath = [array firstObject];
-        NSError *error = nil;
-        BOOL success = [defaultManager copyItemAtPath:cacheLaunchPath toPath:copyFullPath error:&error];
-        if (success) {
-            NSLog(@"storyboard->storyboard方式，首次覆盖安装，图片备份成功");
-        }else{
-            NSLog(@"storyboard->storyboard方式，首次覆盖安装，图片备份失败，文件是否存在%d，copyPath == %@,error == %@",[defaultManager fileExistsAtPath:cacheLaunchPath],copyFullPath,error);
+        if (array.count > 0) {
+            NSString *cacheLaunchPath = [array firstObject];
+            NSError *error = nil;
+            if ([defaultManager fileExistsAtPath:cacheLaunchPath]){
+                BOOL success = [defaultManager copyItemAtPath:cacheLaunchPath toPath:copyFullPath error:&error];
+                if (success) {
+                    NSLog(@"storyboard->storyboard方式，首次覆盖安装，图片备份成功");
+                }else{
+                    NSLog(@"storyboard->storyboard方式，首次覆盖安装，图片备份失败，文件是否存在%d，copyPath == %@,error == %@",[defaultManager fileExistsAtPath:cacheLaunchPath],copyFullPath,error);
+                }
+            }
         }
     }else{
         NSLog(@"storyboard->storyboard方式，移除首次覆盖安装缓存图片");
@@ -189,7 +205,13 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
 
 #pragma mark - 路径
 + (NSString *)splashShotCachePath{
-    NSString *snapShotPath = [NSString stringWithFormat:@"%@/Library/SplashBoard/Snapshots/%@ - {DEFAULT GROUP}/",NSHomeDirectory(),[NSBundle mainBundle].bundleIdentifier];
+    NSString *snapShotPath = nil;
+    if ([UIDevice currentDevice].systemVersion.floatValue < 13.0) {
+        snapShotPath = [NSString stringWithFormat:@"%@/Library/Caches/Snapshots/%@/",NSHomeDirectory(),[NSBundle mainBundle].bundleIdentifier];
+    }else{
+        //13.0以上系统
+        snapShotPath = [NSString stringWithFormat:@"%@/Library/SplashBoard/Snapshots/%@ - {DEFAULT GROUP}/",NSHomeDirectory(),[NSBundle mainBundle].bundleIdentifier];
+    }
     return snapShotPath;
 }
 
@@ -223,12 +245,18 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
     return mjSnapShotPath;
 }
 
++ (BOOL)isAvailable{
+    if ([UIDevice currentDevice].systemVersion.floatValue >= 13.0) {
+        return YES;
+    }
+    return NO;
+}
 @end
 ```
 
 # **四、用法**
 # **用法**
-#### **1. 版本更新逻辑**
+#### **1. 版本更新逻辑(覆盖安装+首次安装置yes)**
 ```
  if ([curMojiVesion isEqualToString:MOJI_VERSION]) {
      coverFirstInstall = NO;
@@ -286,3 +314,5 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
 
 
 适配参考：[iOS13---LaunchScreen.storyboard 启动图屏幕适配「一」](https://www.jianshu.com/p/2b916b5e1fb2)
+
+附：[demo]([https://github.com/code1303009/learning-recording/blob/master/iOS%E7%96%91%E9%9A%BE%E6%9D%82%E7%97%87/MJLaunchScreenTool.m)
