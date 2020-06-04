@@ -14,7 +14,7 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
 
 在iOS应用程序中修改了启动屏幕LaunchScreen.storyboad中的某些内容时，我都会遇到一个问题：系统会缓存启动图像，即使删除了该应用程序，它实际上也很难清除原来的缓存，猜测会有多级缓存。
 
-# 二、分析
+# **二、分析**
 
 我们可以改动的缓存只有本地的沙盒目录（/Library/SplashBoard的Snapshots），打印的日志：
 ```
@@ -38,13 +38,13 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
 **注：如果项目工程是以xcode11方式新建的话，就需要处理UIScene的截图，我们的项目没有用到UIScene方式，所以没有做相应处理。**
 
 # **三、解决**
-##### **思路：推测系统在沙盒目录有图的时候，会从沙盒拿图。所以我们在保持原有目录的情况下，只做图片内容的替换（有坑，有同事之前一直用的主目录方式&&有过沙盒目录的删除操作，替换到这种方式每次首次读图都会空白屏）。**
+#####思路：推测系统在沙盒目录有图的时候，会从沙盒拿图。所以我们在保持原有目录的情况下，只做图片内容的替换（有坑，有同事之前一直用的主目录方式&&有过沙盒目录的删除操作，替换到这种方式每次首次读图都会空白屏）。
 
-**1.取图：**
+##### **1.取图：**
 
 每次展示自定义启动页时，优先从Snapshots里拿image进行展示（无图是从storyBoard拿图），进行无缝衔接；
 
-**2.替换：**
+##### **2.替换：**
 
 当次展示完启动图时，进行更新（**将storyBoard的image同步到Snapshots**）。避免重复无用操作做了版本控制。
 
@@ -70,6 +70,10 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
  * 更替修正storyboard的缓存启动图（storyboard作启动图的情况下，不可删除）
  */
 + (void)updateSplashBoardCache:(BOOL)fetImageFromStoryBoard;
+/**
+ * 更新是否首次安装标志位
+*/
++ (void)updateCoverFisrtInstall:(BOOL)isFirst;
 
 @end
 ```
@@ -78,11 +82,9 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
 #import "MJLaunchScreenTool.h"
 
 #define kSplashBoard_Version @"kSplashBoard_Version"
-
+#define kSplashBoardCoverInstallFirst @"kSplashBoard_Type_CoverInstall_first"
+#define kMJSplashBoardCopyImageName @"mj_cover_install_first_image.png"
 @implementation MJLaunchScreenTool
-//+ (void)load{
-//    [self updateSplashBoardCache:NO];
-//}
 
 //从storyboard获取启动图
 + (UIImage *)getLaunchImageByStoreBoard{
@@ -100,7 +102,14 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
 
 //从沙盒获取启动图
 + (UIImage *)getCacheLaunchImageByLirbrary{
-    NSString *cacheLaunchPath = [[self getCacheLaunchImageArrayPath] firstObject];
+    NSUserDefaults *userDefault = [NSUserDefaults standardUserDefaults];
+    BOOL isCoverFirst = [userDefault boolForKey:kSplashBoardCoverInstallFirst];
+    NSString *cacheLaunchPath = nil;
+    if (isCoverFirst) {
+        cacheLaunchPath = [NSString stringWithFormat:@"%@/%@",[self getCoverInstallFirstImagePath],kMJSplashBoardCopyImageName];
+    }else{
+        cacheLaunchPath = [[self getCacheLaunchImageArrayPath] firstObject];
+    }
     return [[UIImage alloc] initWithContentsOfFile:cacheLaunchPath];
 }
 
@@ -110,13 +119,15 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
 + (void)updateSplashBoardCache:(BOOL)fetImageFromStoryBoard{
     NSUserDefaults *userDefault = [NSUserDefaults standardUserDefaults];
     NSString *splashVersion = [userDefault objectForKey:kSplashBoard_Version];
-    MJXLOG_INFO(@"进入了storyboard开屏清理方法");
+    NSLog(@"进入了storyboard开屏清理方法");
+    // APP_VERSION为外部定义的版本号 也可以是bundleVersion
     if (![splashVersion isEqualToString:APP_VERSION] || !splashVersion) {//非当前版本都会更新截图
         //更新系统截图
         UIImage *launchImage = nil;
         if (fetImageFromStoryBoard) {
             launchImage = [self getLaunchImageByStoreBoard];
         }else{
+            //xcasset 内配置的图片组
             launchImage = [UIImage imageNamed:@"LaunchStoryBoardImages"];
         }
         NSArray *cacheLauchPaths = [self getCacheLaunchImageArrayPath];
@@ -124,14 +135,54 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
         if (launchImage && cacheLauchPaths.count > 0) {
             for (NSString *path in cacheLauchPaths) {
                 if (![imageData writeToFile:path atomically:YES]) {
-                    MJXLOG_INFO(@"storyBoard方式启动图，写入缓存失败");
+                    NSLog(@"storyBoard方式启动图，写入缓存失败");
                 }else{
-                    MJXLOG_INFO(@"storyBoard方式启动图，写入缓存成功，files == %@",[[NSFileManager defaultManager] subpathsAtPath:[self splashShotCachePath]]);
+                    NSLog(@"storyBoard方式启动图，写入缓存成功，files == %@",[[NSFileManager defaultManager] subpathsAtPath:[self splashShotCachePath]]);
                     // 更新标志位
                     [userDefault setObject:MOJI_VERSION forKey:kSplashBoard_Version];
                     [userDefault synchronize];
                 }
             }
+        }
+    }
+}
+
++ (void)updateCoverFisrtInstall:(BOOL)isFirst{
+    NSUserDefaults *userDefault = [NSUserDefaults standardUserDefaults];
+    BOOL cacheValue = [userDefault boolForKey:kSplashBoardCoverInstallFirst];
+    if (cacheValue == isFirst) {
+        return;
+    }
+    [userDefault setBool:isFirst forKey:kSplashBoardCoverInstallFirst];
+    [userDefault synchronize];
+    
+    NSFileManager *defaultManager = [NSFileManager defaultManager];
+    NSString *copyDirectoryPath = [self getCoverInstallFirstImagePath];
+    BOOL isDir = false;
+    BOOL isDirExist = [defaultManager fileExistsAtPath:copyDirectoryPath
+                                        isDirectory:&isDir];
+    if (!isDirExist || !isDir) {
+        [defaultManager createDirectoryAtPath:copyDirectoryPath
+                  withIntermediateDirectories:YES
+                                   attributes:nil
+                                        error:nil];
+    }
+    NSString *copyFullPath = [NSString stringWithFormat:@"%@/%@",copyDirectoryPath,kMJSplashBoardCopyImageName];
+    if (isFirst) {
+        NSArray *array = [self getCacheLaunchImageArrayPath];
+        NSLog(@"storyboard->storyboard方式，开屏截屏缓存数组：%@",array);
+        NSString *cacheLaunchPath = [array firstObject];
+        NSError *error = nil;
+        BOOL success = [defaultManager copyItemAtPath:cacheLaunchPath toPath:copyFullPath error:&error];
+        if (success) {
+            NSLog(@"storyboard->storyboard方式，首次覆盖安装，图片备份成功");
+        }else{
+            NSLog(@"storyboard->storyboard方式，首次覆盖安装，图片备份失败，文件是否存在%d，copyPath == %@,error == %@",[defaultManager fileExistsAtPath:cacheLaunchPath],copyFullPath,error);
+        }
+    }else{
+        NSLog(@"storyboard->storyboard方式，移除首次覆盖安装缓存图片");
+        if ([defaultManager fileExistsAtPath:copyFullPath]) {
+            [defaultManager removeItemAtPath:copyFullPath error:nil];
         }
     }
 }
@@ -147,7 +198,7 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
     NSFileManager *defaultManager = [NSFileManager defaultManager];
     //splashBoard的缓存截图路径
     NSString * snapShotPath = [self splashShotCachePath];
-    MJXLOG_INFO(@"library splashBoard path == %@, subFiles == %@",snapShotPath,[defaultManager subpathsAtPath:snapShotPath]);
+    NSLog(@"library splashBoard path == %@, subFiles == %@",snapShotPath,[defaultManager subpathsAtPath:snapShotPath]);
     
     NSArray *snapShots = [defaultManager subpathsAtPath:snapShotPath];
     NSMutableArray *shotArray = [NSMutableArray array];
@@ -157,7 +208,7 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
             [shotArray addObject: [NSString stringWithFormat:@"%@%@",snapShotPath,shotNameStr]];
         }
         //历史截图清空
-        [defaultManager removeItemAtPath:shotNameStr error:nil];
+//        [defaultManager removeItemAtPath:shotNameStr error:nil];
     }
     
     if (shotArray.count > 0) {
@@ -165,11 +216,30 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
     }
     return nil;
 }
+
+#pragma mark - 备份路径（业务需求）
++ (NSString *)getCoverInstallFirstImagePath{
+    NSString *mjSnapShotPath = [NSString stringWithFormat:@"%@/Library/MJSplashBoard",NSHomeDirectory()];
+    return mjSnapShotPath;
+}
+
 @end
 ```
 
 # **四、用法**
-#### **1. 占位图调用逻辑**
+# **用法**
+#### **1. 版本更新逻辑**
+```
+ if ([curMojiVesion isEqualToString:MOJI_VERSION]) {
+     coverFirstInstall = NO;
+     [MJLaunchScreenTool updateCoverFisrtInstall:NO];
+ } else {
+     coverFirstInstall = YES;
+     [MJLaunchScreenTool updateCoverFisrtInstall:YES];
+ }
+```
+
+#### **2. 占位图调用逻辑**
 ```
   //placeholder
   UIImage *image = [MJLaunchScreenTool getCacheLaunchImageByLirbrary];
@@ -178,18 +248,18 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
   }
   _launchImageView.image = image;
 ```
-#### **2. 更新缓存（启动图结束使用之后，调用）**
-PS:如果有异常问题，可以将这一步提前至+load执行。
+#### **3. 更新缓存（启动图结束使用之后，调用）**
 ```
 [MJLaunchScreenTool updateSplashBoardCache:NO];
 ```
-**附：我们app开屏流程**
+# **附：我们app开屏流程**
 1.系统storyBoard
 2.自有开屏占位图
 3.自有开屏图片展示
 4.删除自定义开屏
 
 更新缓存是在**步骤4**进行操作的。
+
 # **2020.06.04更新**
 测试中，我们发现现有的开屏流程存在问题。
 # **问题**
@@ -210,9 +280,9 @@ PS:如果有异常问题，可以将这一步提前至+load执行。
 #### **2. 非首次启动时，默认之前处理方式**
 每次取系统沙盒路径，并删除备份占位图（Library/JWSplashBoard路径下）。
 
+
 #--------------------------完结撒花-----------------------
 ![](https://upload-images.jianshu.io/upload_images/19675505-46391978692c2395.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 
 适配参考：[iOS13---LaunchScreen.storyboard 启动图屏幕适配「一」](https://www.jianshu.com/p/2b916b5e1fb2)
-
