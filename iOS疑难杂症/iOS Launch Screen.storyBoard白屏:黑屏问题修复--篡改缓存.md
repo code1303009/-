@@ -253,10 +253,10 @@ Apple会将Launch Screen.storyBoard作为与图片类型类似的二进制文件
 [MJLaunchScreenTool updateSplashBoardCache:NO];
 ```
 # **附：我们app开屏流程**
-1.系统storyBoard
-2.自有开屏占位图
-3.自有开屏图片展示
-4.删除自定义开屏
+1. 系统storyBoard
+2. 自有开屏占位图
+3. 自有开屏图片展示
+4. 删除自定义开屏
 
 更新缓存是在**步骤4**进行操作的。
 
