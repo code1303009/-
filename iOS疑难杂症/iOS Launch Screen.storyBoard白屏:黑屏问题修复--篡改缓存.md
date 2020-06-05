@@ -2,6 +2,7 @@
 弃用LaunchImage启动图方式，改用Launch Screen.storyBoard启动图方式，同时不对开屏广告造成影响。
 ### **注：该方案仅适用iOS13.0及以上版本。**
 iOS 12及以下系统沙盒目录（Library/Caches/Snapshots）为不可读、不可写、可删除（但是开发者无权删除）权限，故本套方案不起作用。
+若调试中出现问题，可卸载app，重启手机，重新装载app测试。
 
 # **背景**
 现阶段网上流行的storyboard开屏：
