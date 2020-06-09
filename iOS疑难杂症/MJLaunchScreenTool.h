@@ -18,12 +18,12 @@ NS_ASSUME_NONNULL_BEGIN
 *  获取沙盒/SplashBoard/Snapshots目录下的启动图（推荐）
 *  自定义开屏推荐用此方法拿取启动图
 */
-+ (UIImage *)getCacheLaunchImageByLirbrary;
++ (UIView *)getCacheLaunchImageByLirbrary;
 
 /*
  *  获取Launch Screen.storyBoard内对应的Asset适配的启动图
  */
-+ (UIImage *)getLaunchImageByStoreBoard;
++ (UIView *)getLaunchImageByStoreBoard;
 
 /*
  * 更替修正storyboard的缓存启动图（storyboard作启动图的情况下，不可删除）

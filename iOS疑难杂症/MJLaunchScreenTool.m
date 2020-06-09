@@ -7,6 +7,7 @@
 //
 
 #import "MJLaunchScreenTool.h"
+#import "UIView+ScreenShot.h"
 
 #define kSplashBoard_Version @"kSplashBoard_Version"
 #define kSplashBoardCoverInstallFirst @"kSplashBoard_Type_CoverInstall_first"
@@ -14,21 +15,14 @@
 @implementation MJLaunchScreenTool
 
 //从storyboard获取启动图
-+ (UIImage *)getLaunchImageByStoreBoard{
-    UIImage *launchImage = nil;
++ (UIView *)getLaunchImageByStoreBoard{
     UIStoryboard *launchScreenStoryBoard = [UIStoryboard storyboardWithName:@"Launch Screen" bundle:[NSBundle mainBundle]];
     UIView *view = [launchScreenStoryBoard.instantiateInitialViewController view];
-    for (UIView *v in view.subviews) {
-        if ([v isKindOfClass:UIImageView.class]){//开屏imageview
-            launchImage = [(UIImageView *)v image];
-            break;
-        }
-    }
-    return launchImage;
+    return view;
 }
 
 //从沙盒获取启动图
-+ (UIImage *)getCacheLaunchImageByLirbrary{
++ (UIView *)getCacheLaunchImageByLirbrary{
     if (![self isAvailable]) {
         return [self getLaunchImageByStoreBoard];
     }
@@ -40,7 +34,10 @@
     }else{
         cacheLaunchPath = [[self getCacheLaunchImageArrayPath] firstObject];
     }
-    return [[UIImage alloc] initWithContentsOfFile:cacheLaunchPath];
+    UIImage *image = [[UIImage alloc] initWithContentsOfFile:cacheLaunchPath];
+    UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
+    imageView.frame = SCREEN_FRAME;
+    return imageView;
 }
 
 #pragma mark - launch screen.storyBoard 缓存清理、重置（版本更新时需调用）
@@ -62,7 +59,8 @@
         //更新系统截图
         UIImage *launchImage = nil;
         if (fetImageFromStoryBoard) {
-            launchImage = [self getLaunchImageByStoreBoard];
+            UIView *launchView = [self getLaunchImageByStoreBoard];
+            launchImage = [launchView screenShot];
         }else{
             //xcasset 内配置的图片组
             launchImage = [UIImage imageNamed:@"LaunchStoryBoardImages"];
