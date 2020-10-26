@@ -172,7 +172,7 @@ unit4A!.tenant = john
 john = nil
 //打印 "John Appleseed is being deinitialized"
 ```
-![image.png](https://upload-images.jianshu.io/upload_images/19675505-7d0039e05f5ae97c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![image.png](https://github.com/code1303009/learning-recording/blob/master/swift%E7%9B%B8%E5%85%B3/images/image1.png)
 
 #### 2. 无主引用`Unowned`
 和弱引用类似，无主引用不会牢牢保持住引用的实例。但区别的是，无主引用在其他实例有`相同或者更长的生命周期时`使用。
@@ -233,7 +233,7 @@ if useOfficial {
     }
 }
 ```
-![image.png](https://upload-images.jianshu.io/upload_images/19675505-291b99b1897a96f2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![image.png](https://github.com/code1303009/learning-recording/blob/master/swift%E7%9B%B8%E5%85%B3/images/image2.png)
 
 > **注意**
 > 除了上述的安全的无主引用。对于需要禁用运行时的安全检查的情况（例如，出于性能方面的原因），Swift 还提供了不安全的无主引用。与所有不安全的操作一样，你需要负责检查代码以确保其安全性。 你可以通过 `unowned(unsafe) `来声明不安全无主引用。如果你试图在实例被销毁后，访问该实例的不安全无主引用，你的程序会`尝试访问该实例之前所在的内存地址`，这是一个不安全的操作。
@@ -250,4 +250,4 @@ import UIKit
 UIApplicationMain(CommandLine.argc, CommandLine.unsafeArgv, NSStringFromClass(UIApplication.self), NSStringFromClass(AppDelegate.self))
 ```
 默认新demo是未开放查看汇编的，如果要在main.swift断点调试查看汇编的话，开启`Debug -> Debug Workflow -> always show Disassembly`就可以断在汇编代码里了。
-![image.png](https://upload-images.jianshu.io/upload_images/19675505-ca2ad17780cf906a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![image.png](https://github.com/code1303009/learning-recording/blob/master/swift%E7%9B%B8%E5%85%B3/images/image3.png)
