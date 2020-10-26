@@ -247,8 +247,7 @@ xcode新建的swift工程，缺少了main.swift文件，是因为官方对此进
 ```
 import Foundation
 import UIKit
-private let pointer = UnsafeMutableRawPointer(CommandLine.unsafeArgv).bindMemory(to: UnsafeMutablePointer<Int8>.self, capacity: Int(CommandLine.argc))
-UIApplicationMain(CommandLine.argc, pointer, NSStringFromClass(UIApplication.self), NSStringFromClass(AppDelegate.self))
+UIApplicationMain(CommandLine.argc, CommandLine.unsafeArgv, NSStringFromClass(UIApplication.self), NSStringFromClass(AppDelegate.self))
 ```
 默认新demo是未开放查看汇编的，如果要在main.swift断点调试查看汇编的话，开启`Debug -> Debug Workflow -> always show Disassembly`就可以断在汇编代码里了。
 ![image.png](https://upload-images.jianshu.io/upload_images/19675505-ca2ad17780cf906a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
